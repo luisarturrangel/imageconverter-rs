@@ -120,7 +120,7 @@ impl eframe::App for MyApp {
 
                         ui.style_mut().spacing.button_padding =
                             (BUTTON_WIDTH, BUTTON_HEIGHT).into();
-                        if ui.button("send").clicked() {
+                        if ui.button("Convert").clicked() {
                             if self.input_text.is_empty() {
                                 self.error_visible = true;
                             } else {
