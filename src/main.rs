@@ -1,5 +1,5 @@
 use eframe::*;
-use egui::{CentralPanel, TextEdit, Window};
+use egui::{CentralPanel, Color32, TextEdit, Window};
 
 struct MyApp {
     input_text: String,
@@ -7,6 +7,25 @@ struct MyApp {
     selected: Enum,
     error_visible: bool,
     block_input: bool,
+    error: Option<ErrorType>,
+    response_convert: bool,
+    loading: bool,
+}
+
+enum ErrorType {
+    NoPathProvided,
+    InvalidFileType,
+}
+
+impl ErrorType {
+    fn error_menssage(error: &Option<ErrorType>) -> &str {
+        let error = match error {
+            Some(ErrorType::NoPathProvided) => "Error: No path provided",
+            Some(ErrorType::InvalidFileType) => "Error: Invlid file type",
+            _ => panic!("something"),
+        };
+        error
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -31,8 +50,8 @@ impl Enum {
 }
 
 #[warn(unused_must_use)]
-fn convert(path: &str, path_save: Option<&str>, file_type: &Enum) {
-    let jpeg_image = image::open(path).expect("Failed to open Jpeg");
+fn convert(path: &str, path_save: Option<&str>, file_type: &Enum) -> bool {
+    let image_data = image::open(path).expect("Failed to open Image");
     let output_ext = match file_type {
         Enum::PNG => ".png",
         Enum::JPEG => ".jpeg",
@@ -46,9 +65,11 @@ fn convert(path: &str, path_save: Option<&str>, file_type: &Enum) {
         _ => format!("output{}", output_ext),
     };
 
-    jpeg_image
+    image_data
         .save_with_format(path_handle, Enum::from_index(file_type))
         .expect("Failed to save Image");
+
+    true
 }
 
 impl Default for MyApp {
@@ -59,6 +80,9 @@ impl Default for MyApp {
             selected: Enum::PNG,
             error_visible: false,
             block_input: false,
+            error: None,
+            response_convert: false,
+            loading: false,
         }
     }
 }
@@ -116,15 +140,56 @@ impl eframe::App for MyApp {
                     ui.horizontal(|ui| {
                         const BUTTON_WIDTH: f32 = 20.0;
                         const BUTTON_HEIGHT: f32 = 10.0;
-                        ui.add_space(ui.available_width() - &BUTTON_WIDTH * 3.2);
-
+                        ui.add_space(ui.available_width() - &BUTTON_WIDTH * 4.0);
                         ui.style_mut().spacing.button_padding =
                             (BUTTON_WIDTH, BUTTON_HEIGHT).into();
                         if ui.button("Convert").clicked() {
+                            // self.loading = true;
+                            
                             if self.input_text.is_empty() {
+                                self.error = Some(ErrorType::NoPathProvided);
                                 self.error_visible = true;
                             } else {
-                                convert(&self.input_text, Some(&self.input_save), &self.selected);
+                                let tmp = image::open(&self.input_text);
+                                match tmp {
+                                    Err(_) => {
+                                        self.error = Some(ErrorType::InvalidFileType);
+                                        self.error_visible = true;
+                                    }
+                                    Ok(_) => {
+                                        // TODO: implement loading
+                                        // if self.loading {
+                                        //     self.block_input = true;
+                                        //     Window::new("loading")
+                                        //         .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+                                        //         .interactable(false)
+                                        //         .collapsible(false).open(&mut true)
+                                        //         .show(ctx, |ui| {
+                                        //             ui.set_min_size(egui::Vec2 {
+                                        //                 x: (100.0),
+                                        //                 y: (50.0),
+                                        //             });
+                                        //             ui.set_max_size(egui::Vec2 {
+                                        //                 x: (150.0),
+                                        //                 y: (100.0),
+                                        //             });
+                                        //             ui.add_space(15.0);
+                                        //             ui.vertical_centered(|ui| {
+                                        //                 ui.spinner();
+                                        //             });
+                                        //             if self.response_convert {
+                                        //                 self.loading = false;
+                                        //                 self.block_input = false;
+                                        //             }
+                                        //         });
+                                        // }
+                                        self.response_convert = convert(
+                                            &self.input_text,
+                                            Some(&self.input_save),
+                                            &self.selected,
+                                        );
+                                    }
+                                }
                             }
                         }
                     });
@@ -133,22 +198,57 @@ impl eframe::App for MyApp {
                 // EOF
             }
         });
-        if self.error_visible {
+
+        if self.response_convert {
             self.block_input = true;
-            Window::new("Error")
+            Window::new("Success")
                 .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
                 .show(ctx, |ui| {
+                    ui.style_mut().visuals.warn_fg_color = Color32::RED;
                     ui.set_min_size(egui::Vec2 {
-                        x: (80.0),
-                        y: (40.0),
-                    });
-                    ui.set_max_size(egui::Vec2 {
                         x: (100.0),
                         y: (50.0),
                     });
-                    ui.label("Error: must provide a path to the file");
+                    ui.set_max_size(egui::Vec2 {
+                        x: (150.0),
+                        y: (100.0),
+                    });
+                    if self.input_save.is_empty() {
+                        ui.label("saved in: current directory");
+                    } else {
+                        ui.label(format!("saved in: {}", &self.input_save));
+                    }
                     ui.vertical_centered(|ui| {
                         ui.style_mut().spacing.button_padding = (25.0, 5.0).into();
+                        ui.add_space(10.0);
+                        if ui.button("OK").clicked() {
+                            self.block_input = false;
+                            self.response_convert = false;
+                        }
+                    })
+                });
+        }
+
+        if self.error_visible {
+            self.block_input = true;
+
+            Window::new("Error")
+                .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+                .show(ctx, |ui| {
+                    ui.style_mut().visuals.warn_fg_color = Color32::RED;
+                    ui.set_min_size(egui::Vec2 {
+                        x: (100.0),
+                        y: (50.0),
+                    });
+                    ui.set_max_size(egui::Vec2 {
+                        x: (150.0),
+                        y: (100.0),
+                    });
+                    let error = ErrorType::error_menssage(&self.error);
+                    ui.label(error);
+                    ui.vertical_centered(|ui| {
+                        ui.style_mut().spacing.button_padding = (25.0, 5.0).into();
+                        ui.add_space(10.0);
                         if ui.button("OK").clicked() {
                             self.error_visible = false;
                             self.block_input = false;
