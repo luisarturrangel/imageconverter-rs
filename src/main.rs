@@ -240,8 +240,8 @@ impl eframe::App for MyApp {
                         y: (100.0),
                     });
                     if self.input_save.is_empty() {
-                        let empty_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-                        let empty_path = empty_path.to_str().expect("Failed to get directory");
+                        let empty_path = env::current_dir().expect("Failed to find directory");
+                        let empty_path = empty_path.to_str().expect("Failed to convert PathBuf to string");
                         ui.label(format!("saved in: {}", empty_path));
                     } else {
                         ui.label(format!("saved in: {}", &self.input_save));
