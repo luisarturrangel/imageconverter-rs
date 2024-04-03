@@ -12,18 +12,24 @@ Simple GUI application built with Rust that allows users to convert image files 
 ## Usage
 
 1. Clone the repository to your local machine.
-2. Navigate to the project directory.
-3. Build the project using Cargo:
+   ```
+   git clone https://github.com/luisarturrangel/imageconverter-rs/
+   ```
+3. Navigate to the project directory.
+   ```
+   cd imageconverter-rs
+   ```
+5. Build the project using Cargo:
    ```
    cargo build --release
    ```
-4. Run the executable:
+6. Run the executable:
    ```
-   ./target/release/imageconverter-rs
+   ./target/release/rust.exe
    ```
-5. Use the GUI to select the image file you want to convert and choose the desired output format.
-6. Click the "Convert" button to initiate the conversion process.
-7. Once the conversion is complete, the converted image will be saved in the specified location.
+7. Use the GUI to select the image file you want to convert and choose the desired output format.
+8. Click the "Convert" button to initiate the conversion process.
+9. Once the conversion is complete, the converted image will be saved in the specified location.
 
 ## Dependencies
 
