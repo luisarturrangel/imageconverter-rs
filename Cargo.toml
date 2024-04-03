@@ -10,3 +10,6 @@ eframe = "*"
 egui = "*"
 image = "*"
 nfd = "*"
+
+[profile.release]
+opt-level = 'z'

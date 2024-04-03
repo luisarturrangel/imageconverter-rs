@@ -1,6 +1,7 @@
+#![windows_subsystem = "windows"]
 use eframe::*;
 use egui::{CentralPanel, Color32, TextEdit, Window};
-use std::sync::{Arc, Mutex};
+use std::{env, path::PathBuf, sync::{Arc, Mutex}};
 
 struct MyApp {
     input_text: String,
@@ -239,7 +240,9 @@ impl eframe::App for MyApp {
                         y: (100.0),
                     });
                     if self.input_save.is_empty() {
-                        ui.label("saved in: current directory");
+                        let empty_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                        let empty_path = empty_path.to_str().expect("Failed to get directory");
+                        ui.label(format!("saved in: {}", empty_path));
                     } else {
                         ui.label(format!("saved in: {}", &self.input_save));
                     }
@@ -286,14 +289,21 @@ impl eframe::App for MyApp {
 
 fn main() -> eframe::Result<(), eframe::Error> {
     let min_size: [f32; 2] = [350.0, 170.0];
+    // Icon handle
+    let mut exe_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    exe_dir.push("assets");
+    exe_dir.push("icon.png");
+    let icon_path_str = exe_dir.to_str().expect("Failed to convert path to string");
+   
     let options = eframe::NativeOptions {
-        
         viewport: egui::ViewportBuilder::default()
-            .with_icon(load_icon("./assets/icon.png"))
+            .with_icon(load_icon(icon_path_str))
             .with_inner_size(&min_size)
             .with_min_inner_size(&min_size),
         ..Default::default()
     };
+
+    
     run_native(
         "imagecoverter-rs",
         options,
