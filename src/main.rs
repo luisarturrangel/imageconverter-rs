@@ -1,5 +1,5 @@
 use eframe::*;
-use egui::{CentralPanel, Color32, Response, TextEdit, Window};
+use egui::{CentralPanel, Color32, TextEdit, Window};
 use std::sync::{Arc, Mutex};
 
 struct MyApp {
@@ -11,6 +11,23 @@ struct MyApp {
     error: Option<ErrorType>,
     response_convert: Arc<Mutex<bool>>,
     loading: bool,
+}
+
+fn load_icon(path: &str) -> egui::IconData {
+    let (icon_rgba, icon_width, icon_height) = {
+        let image = image::open(path)
+            .expect("Failed to open icon path")
+            .into_rgba8();
+        let (width, height) = image.dimensions();
+        let rgba = image.into_raw();
+        (rgba, width, height)
+    };
+
+    egui::IconData {
+        rgba: icon_rgba,
+        width: icon_width,
+        height: icon_height,
+    }
 }
 
 enum ErrorType {
@@ -159,7 +176,6 @@ impl eframe::App for MyApp {
                                         self.error_visible = true;
                                     }
                                     Ok(_) => {
-                                        // TODO: implement loading
                                         self.loading = true;
                                         let input_text = self.input_text.clone();
                                         let input_save = self.input_save.clone();
@@ -271,13 +287,15 @@ impl eframe::App for MyApp {
 fn main() -> eframe::Result<(), eframe::Error> {
     let min_size: [f32; 2] = [350.0, 170.0];
     let options = eframe::NativeOptions {
+        
         viewport: egui::ViewportBuilder::default()
+            .with_icon(load_icon("./assets/icon.png"))
             .with_inner_size(&min_size)
             .with_min_inner_size(&min_size),
         ..Default::default()
     };
     run_native(
-        "app_name",
+        "imagecoverter-rs",
         options,
         Box::new(|_cc| Box::new(MyApp::default())),
     )
