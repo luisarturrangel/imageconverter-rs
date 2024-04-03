@@ -1,5 +1,6 @@
 use eframe::*;
-use egui::{CentralPanel, Color32, TextEdit, Window};
+use egui::{CentralPanel, Color32, Response, TextEdit, Window};
+use std::sync::{Arc, Mutex};
 
 struct MyApp {
     input_text: String,
@@ -8,7 +9,7 @@ struct MyApp {
     error_visible: bool,
     block_input: bool,
     error: Option<ErrorType>,
-    response_convert: bool,
+    response_convert: Arc<Mutex<bool>>,
     loading: bool,
 }
 
@@ -81,7 +82,7 @@ impl Default for MyApp {
             error_visible: false,
             block_input: false,
             error: None,
-            response_convert: false,
+            response_convert: Arc::new(Mutex::new(false)),
             loading: false,
         }
     }
@@ -90,6 +91,7 @@ impl Default for MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut Frame) {
         CentralPanel::default().show(ctx, |ui| {
+            let response_clone = self.response_convert.clone();
             if !self.block_input {
                 // SOF
                 let window_size = ui.ctx().screen_rect();
@@ -158,36 +160,17 @@ impl eframe::App for MyApp {
                                     }
                                     Ok(_) => {
                                         // TODO: implement loading
-                                        // if self.loading {
-                                        //     self.block_input = true;
-                                        //     Window::new("loading")
-                                        //         .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
-                                        //         .interactable(false)
-                                        //         .collapsible(false).open(&mut true)
-                                        //         .show(ctx, |ui| {
-                                        //             ui.set_min_size(egui::Vec2 {
-                                        //                 x: (100.0),
-                                        //                 y: (50.0),
-                                        //             });
-                                        //             ui.set_max_size(egui::Vec2 {
-                                        //                 x: (150.0),
-                                        //                 y: (100.0),
-                                        //             });
-                                        //             ui.add_space(15.0);
-                                        //             ui.vertical_centered(|ui| {
-                                        //                 ui.spinner();
-                                        //             });
-                                        //             if self.response_convert {
-                                        //                 self.loading = false;
-                                        //                 self.block_input = false;
-                                        //             }
-                                        //         });
-                                        // }
-                                        self.response_convert = convert(
-                                            &self.input_text,
-                                            Some(&self.input_save),
-                                            &self.selected,
-                                        );
+                                        self.loading = true;
+                                        let input_text = self.input_text.clone();
+                                        let input_save = self.input_save.clone();
+                                        let selected = self.selected.clone();
+                                        let response_clone_thread = response_clone.clone();
+                                        std::thread::spawn(move || {
+                                            let response_convert = convert(&input_text, Some(&input_save), &selected);
+
+                                            *response_clone_thread.lock().unwrap() = response_convert;
+                                        });
+                                        
                                     }
                                 }
                             }
@@ -199,7 +182,33 @@ impl eframe::App for MyApp {
             }
         });
 
-        if self.response_convert {
+        if self.loading {
+            self.block_input = true;
+            Window::new("loading")
+                .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+                .interactable(false)
+                .collapsible(false).open(&mut true)
+                .show(ctx, |ui| {
+                    ui.set_min_size(egui::Vec2 {
+                        x: (100.0),
+                        y: (50.0),
+                    });
+                    ui.set_max_size(egui::Vec2 {
+                        x: (150.0),
+                        y: (100.0),
+                    });
+                    ui.add_space(15.0);
+                    ui.vertical_centered(|ui| {
+                        ui.spinner();
+                    });
+                    if *self.response_convert.lock().unwrap() {
+                        self.loading = false;
+                        self.block_input = false;
+                    }
+                });
+        }
+
+        if *self.response_convert.lock().unwrap() {
             self.block_input = true;
             Window::new("Success")
                 .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
@@ -223,7 +232,7 @@ impl eframe::App for MyApp {
                         ui.add_space(10.0);
                         if ui.button("OK").clicked() {
                             self.block_input = false;
-                            self.response_convert = false;
+                            *self.response_convert.lock().unwrap() = false;
                         }
                     })
                 });
