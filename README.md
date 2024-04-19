@@ -25,7 +25,7 @@ Simple GUI application built with Rust that allows users to convert image files 
    ```
 6. Run the executable:
    ```
-   ./target/release/rust.exe
+   ./target/release/imageconvert-rs.exe
    ```
 7. Use the GUI to select the image file you want to convert and choose the desired output format.
 8. Click the "Convert" button to initiate the conversion process.
