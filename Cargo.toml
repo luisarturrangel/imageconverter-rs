@@ -1,7 +1,11 @@
 [package]
-name = "rust"
+name = "imageconverter-rs"
 version = "0.1.0"
+authors = ["Luis Artur Rangel", "<luisarturrangel@gmail.com>"]
 edition = "2021"
+license = "MIT"
+description = "Efficiently convert images between various formats"
+license-file = "LICENSE.rtf"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
