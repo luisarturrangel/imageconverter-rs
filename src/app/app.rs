@@ -1,9 +1,3 @@
-#![windows_subsystem = "windows"]
-mod app;
-use eframe::*;
-use egui::{CentralPanel, Color32, TextEdit, Window};
-use std::{env, path::PathBuf, sync::{Arc, Mutex}};
-
 struct MyApp {
     input_text: String,
     input_save: String,
@@ -13,83 +7,6 @@ struct MyApp {
     error: Option<ErrorType>,
     response_convert: Arc<Mutex<bool>>,
     loading: bool,
-}
-
-enum ErrorType {
-    NoPathProvided,
-    InvalidFileType,
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-enum FormatType {
-    PNG,
-    JPEG,
-    BMP,
-    WEBP,
-    ICO,
-}
-
-fn load_icon(path: &str) -> egui::IconData {
-    let (icon_rgba, icon_width, icon_height) = {
-        let image = image::open(path)
-            .expect("Failed to open icon path")
-            .into_rgba8();
-        let (width, height) = image.dimensions();
-        let rgba = image.into_raw();
-        (rgba, width, height)
-    };
-
-    egui::IconData {
-        rgba: icon_rgba,
-        width: icon_width,
-        height: icon_height,
-    }
-}
-
-impl ErrorType {
-    fn error_menssage(error: &Option<ErrorType>) -> &str {
-        let error = match error {
-            Some(ErrorType::NoPathProvided) => "Error: No path provided",
-            Some(ErrorType::InvalidFileType) => "Error: Invlid file type",
-            _ => panic!("something"),
-        };
-        error
-    }
-}
-
-impl FormatType {
-    fn from_index(index: &FormatType) -> image::ImageFormat {
-        match index {
-            FormatType::PNG => image::ImageFormat::Png,
-            FormatType::JPEG => image::ImageFormat::Jpeg,
-            FormatType::BMP => image::ImageFormat::Bmp,
-            FormatType::WEBP => image::ImageFormat::WebP,
-            FormatType::ICO => image::ImageFormat::Ico,
-        }
-    }
-}
-
-#[warn(unused_must_use)]
-fn convert(path: &str, path_save: Option<&str>, file_type: &FormatType) -> bool {
-    let image_data = image::open(path).expect("Failed to open Image");
-    let output_ext = match file_type {
-        FormatType::PNG => ".png",
-        FormatType::JPEG => ".jpeg",
-        FormatType::BMP => ".bmp",
-        FormatType::WEBP => ".WEBP",
-        FormatType::ICO => ".ICO",
-    };
-
-    let path_handle = match path_save {
-        Some(path_save) if !path_save.is_empty() => format!("{}/output{}", path_save, output_ext),
-        _ => format!("output{}", output_ext),
-    };
-
-    image_data
-        .save_with_format(path_handle, FormatType::from_index(file_type))
-        .expect("Failed to save Image");
-
-    true
 }
 
 impl Default for MyApp {
@@ -286,28 +203,4 @@ impl eframe::App for MyApp {
                 });
         }
     }
-}
-
-fn main() -> eframe::Result<(), eframe::Error> {
-    let min_size: [f32; 2] = [350.0, 170.0];
-    // Icon handle
-    let mut exe_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    exe_dir.push("assets");
-    exe_dir.push("icon.png");
-    let icon_path_str = exe_dir.to_str().expect("Failed to convert path to string");
-   
-    let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_icon(load_icon(icon_path_str))
-            .with_inner_size(&min_size)
-            .with_min_inner_size(&min_size),
-        ..Default::default()
-    };
-
-    
-    run_native(
-        "imagecoverter-rs",
-        options,
-        Box::new(|_cc| Box::new(MyApp::default())),
-    )
 }
