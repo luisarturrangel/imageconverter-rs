@@ -1,6 +1,6 @@
 use super::types::{ErrorType, FormatType};
 pub use eframe::*;
-pub use egui::{CentralPanel, Color32, TextEdit, Window};
+pub use egui::{Color32, TextEdit, Window};
 use std::{
     env,
     sync::{Arc, Mutex},
@@ -76,7 +76,7 @@ impl MyApp {
 
     fn draw_loading_window(&mut self, ctx: &egui::Context) {
         Window::new("loading")
-            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0)).fixed_rect(egui::Rect{min: egui::Pos2 { x: 0.0, y: 0.0 }, max: egui::Pos2 { x: 0.0, y: 0.0 }})
             .interactable(false)
             .collapsible(false)
             .open(&mut true)
@@ -102,7 +102,7 @@ impl MyApp {
 
     fn draw_success_window(&mut self, ctx: &egui::Context) {
         Window::new("Success")
-            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0)).fixed_rect(egui::Rect{min: egui::Pos2 { x: 0.0, y: 0.0 }, max: egui::Pos2 { x: 0.0, y: 0.0 }})
             .show(ctx, |ui| {
                 ui.style_mut().visuals.warn_fg_color = Color32::RED;
                 ui.set_min_size(egui::Vec2 {
@@ -134,8 +134,9 @@ impl MyApp {
     }
 
     fn draw_error_window(&mut self, ctx: &egui::Context) {
+        let pos = (egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0));
         Window::new("Error")
-            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .anchor(pos.0, pos.1).fixed_rect(egui::Rect{min: egui::Pos2 { x: 0.0, y: 0.0 }, max: egui::Pos2 { x: 0.0, y: 0.0 }})
             .show(ctx, |ui| {
                 ui.style_mut().visuals.warn_fg_color = Color32::RED;
                 ui.set_min_size(egui::Vec2 {
