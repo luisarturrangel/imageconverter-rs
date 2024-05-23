@@ -1,4 +1,9 @@
-struct MyApp {
+use super::types::{ErrorType, FormatType};
+pub use eframe::*;
+pub use egui::{CentralPanel, Color32, TextEdit, Window};
+use std::{env, sync::{Arc, Mutex}};
+
+pub struct MyApp {
     input_text: String,
     input_save: String,
     selected: FormatType,
@@ -8,6 +13,30 @@ struct MyApp {
     response_convert: Arc<Mutex<bool>>,
     loading: bool,
 }
+
+#[warn(unused_must_use)]
+fn convert(path: &str, path_save: Option<&str>, file_type: &FormatType) -> bool {
+    let image_data = image::open(path).expect("Failed to open Image");
+    let output_ext = match file_type {
+        FormatType::PNG => ".png",
+        FormatType::JPEG => ".jpeg",
+        FormatType::BMP => ".bmp",
+        FormatType::WEBP => ".WEBP",
+        FormatType::ICO => ".ICO",
+    };
+
+    let path_handle = match path_save {
+        Some(path_save) if !path_save.is_empty() => format!("{}/output{}", path_save, output_ext),
+        _ => format!("output{}", output_ext),
+    };
+
+    image_data
+        .save_with_format(path_handle, FormatType::from_index(file_type))
+        .expect("Failed to save Image");
+
+    true
+}
+
 
 impl Default for MyApp {
     fn default() -> Self {

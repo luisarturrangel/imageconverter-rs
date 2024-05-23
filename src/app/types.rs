@@ -1,10 +1,10 @@
-enum ErrorType {
+pub enum ErrorType {
     NoPathProvided,
     InvalidFileType,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-enum FormatType {
+pub enum FormatType {
     PNG,
     JPEG,
     BMP,
@@ -13,7 +13,7 @@ enum FormatType {
 }
 
 impl ErrorType {
-    fn error_menssage(error: &Option<ErrorType>) -> &str {
+    pub fn error_menssage(error: &Option<ErrorType>) -> &str {
         let error = match error {
             Some(ErrorType::NoPathProvided) => "Error: No path provided",
             Some(ErrorType::InvalidFileType) => "Error: Invlid file type",
@@ -24,7 +24,7 @@ impl ErrorType {
 }
 
 impl FormatType {
-    fn from_index(index: &FormatType) -> image::ImageFormat {
+    pub fn from_index(index: &FormatType) -> image::ImageFormat {
         match index {
             FormatType::PNG => image::ImageFormat::Png,
             FormatType::JPEG => image::ImageFormat::Jpeg,
