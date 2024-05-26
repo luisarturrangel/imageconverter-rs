@@ -4,8 +4,12 @@ pub use egui::{Color32, TextEdit, Window};
 use std::{
     env,
     sync::{Arc, Mutex},
-    path::Path,
 };
+
+pub struct ImageSizeValue {
+    value_x: f32,
+    value_y: f32,
+}
 
 pub struct MyApp {
     input_text: String,
@@ -90,11 +94,23 @@ impl MyApp {
             }
         };
         let source = format!("file://{}", &self.input_text.clone());
-        let image = ui.add(
+        let mut image_size = ImageSizeValue {
+            value_x: 0.0,
+            value_y: 0.0,
+        };
+
+        if (image_dimensions.0, image_dimensions.1) > (300.0, 250.0){
+            image_size.value_x = image_dimensions.0 * 0.2;
+            image_size.value_y = image_dimensions.1 * 0.2;
+        } else {
+            image_size.value_x = 300.0;
+            image_size.value_y = 250.0
+        }
+        ui.add(
             egui::Image::new(source)
             .max_size(egui::Vec2 { 
-                x: image_dimensions.0 * 0.2,
-                y: image_dimensions.1 * 0.2,
+                x: image_size.value_x,
+                y: image_size.value_y,
             })
             .rounding(10.0)
             .show_loading_spinner(true)
