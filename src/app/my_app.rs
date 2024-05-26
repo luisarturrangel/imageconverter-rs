@@ -4,6 +4,7 @@ pub use egui::{Color32, TextEdit, Window};
 use std::{
     env,
     sync::{Arc, Mutex},
+    path::Path,
 };
 
 pub struct MyApp {
@@ -53,11 +54,16 @@ impl MyApp {
         egui::ComboBox::from_label("Save as")
             .selected_text(format!("{:?}", &self.selected))
             .show_ui(ui, |ui| {
-                ui.selectable_value(&mut self.selected, FormatType::PNG, "PNG");
-                ui.selectable_value(&mut self.selected, FormatType::JPEG, "JPEG");
-                ui.selectable_value(&mut self.selected, FormatType::BMP, "BMP");
-                ui.selectable_value(&mut self.selected, FormatType::WEBP, "WEBP");
-                ui.selectable_value(&mut self.selected, FormatType::ICO, "ICO");
+                ui.selectable_value(&mut self.selected, FormatType::Png, "PNG");
+                ui.selectable_value(&mut self.selected, FormatType::Jpeg, "JPEG");
+                ui.selectable_value(&mut self.selected, FormatType::Bmp, "BMP");
+                ui.selectable_value(&mut self.selected, FormatType::WebP, "WEBP");
+                ui.selectable_value(&mut self.selected, FormatType::Gif, "GIF");
+                ui.selectable_value(&mut self.selected, FormatType::Ico, "ICO");
+                ui.selectable_value(&mut self.selected, FormatType::Avif, "AVIF");
+                ui.selectable_value(&mut self.selected, FormatType::Dds, "DDS");
+                ui.selectable_value(&mut self.selected, FormatType::Hdr, "HDR");
+                ui.selectable_value(&mut self.selected, FormatType::Tiff, "TIFF");
             });
     }
 
@@ -74,9 +80,34 @@ impl MyApp {
         response
     }
 
+    fn draw_image(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        egui_extras::install_image_loaders(ctx);
+        let image_dimensions = match image::image_dimensions(&self.input_text) {
+            Ok((width, height)) => (width as f32, height as f32),
+            Err(err) => {
+                eprintln!("Error getting image dimensions: {}", err);
+                return;
+            }
+        };
+        let source = format!("file://{}", &self.input_text.clone());
+        let image = ui.add(
+            egui::Image::new(source)
+            .max_size(egui::Vec2 { 
+                x: image_dimensions.0 * 0.2,
+                y: image_dimensions.1 * 0.2,
+            })
+            .rounding(10.0)
+            .show_loading_spinner(true)
+        );
+    }
+
     fn draw_loading_window(&mut self, ctx: &egui::Context) {
         Window::new("loading")
-            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0)).fixed_rect(egui::Rect{min: egui::Pos2 { x: 0.0, y: 0.0 }, max: egui::Pos2 { x: 0.0, y: 0.0 }})
+            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .fixed_rect(egui::Rect {
+                min: egui::Pos2 { x: 0.0, y: 0.0 },
+                max: egui::Pos2 { x: 0.0, y: 0.0 },
+            })
             .interactable(false)
             .collapsible(false)
             .open(&mut true)
@@ -102,7 +133,11 @@ impl MyApp {
 
     fn draw_success_window(&mut self, ctx: &egui::Context) {
         Window::new("Success")
-            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0)).fixed_rect(egui::Rect{min: egui::Pos2 { x: 0.0, y: 0.0 }, max: egui::Pos2 { x: 0.0, y: 0.0 }})
+            .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+            .fixed_rect(egui::Rect {
+                min: egui::Pos2 { x: 0.0, y: 0.0 },
+                max: egui::Pos2 { x: 0.0, y: 0.0 },
+            })
             .show(ctx, |ui| {
                 ui.style_mut().visuals.warn_fg_color = Color32::RED;
                 ui.set_min_size(egui::Vec2 {
@@ -136,7 +171,11 @@ impl MyApp {
     fn draw_error_window(&mut self, ctx: &egui::Context) {
         let pos = (egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0));
         Window::new("Error")
-            .anchor(pos.0, pos.1).fixed_rect(egui::Rect{min: egui::Pos2 { x: 0.0, y: 0.0 }, max: egui::Pos2 { x: 0.0, y: 0.0 }})
+            .anchor(pos.0, pos.1)
+            .fixed_rect(egui::Rect {
+                min: egui::Pos2 { x: 0.0, y: 0.0 },
+                max: egui::Pos2 { x: 0.0, y: 0.0 },
+            })
             .show(ctx, |ui| {
                 ui.style_mut().visuals.warn_fg_color = Color32::RED;
                 ui.set_min_size(egui::Vec2 {
@@ -196,27 +235,30 @@ impl MyApp {
             let padding_x = (window_size.width() - content_width) / 50.0;
             let padding_y = (window_size.height() - content_height) / 50.0;
             egui::containers::Frame::group(&egui::Style::default()).show(ui, |ui| {
-            ui.style_mut().spacing.item_spacing.x = padding_x;
-            ui.style_mut().spacing.item_spacing.y = padding_y;
-            self.draw_file_input(ui);
-            self.draw_save_input(ui);
-            self.draw_save_as_dropdown(ui);
-            if self.draw_convert_button(ui) {
-                self.convert_image();
+                ui.style_mut().spacing.item_spacing.x = padding_x;
+                ui.style_mut().spacing.item_spacing.y = padding_y;
+                if !self.input_text.is_empty() {
+                    self.draw_image(ui, ctx);
+                }
+                self.draw_file_input(ui);
+                self.draw_save_input(ui);
+                self.draw_save_as_dropdown(ui);
+                if self.draw_convert_button(ui) {
+                    self.convert_image();
+                }
+            });
+
+            if self.loading {
+                self.draw_loading_window(ctx);
             }
-        });
 
-        if self.loading {
-            self.draw_loading_window(ctx);
-        }
+            if *self.response_convert.lock().unwrap() {
+                self.draw_success_window(ctx);
+            }
 
-        if *self.response_convert.lock().unwrap() {
-            self.draw_success_window(ctx);
-        }
-
-        if self.error_visible {
-            self.draw_error_window(ctx);
-        }
+            if self.error_visible {
+                self.draw_error_window(ctx);
+            }
         });
     }
 }
@@ -224,14 +266,7 @@ impl MyApp {
 #[warn(unused_must_use)]
 fn convert(path: &str, path_save: Option<&str>, file_type: &FormatType) -> bool {
     let image_data = image::open(path).expect("Failed to open Image");
-    let output_ext = match file_type {
-        FormatType::PNG => ".png",
-        FormatType::JPEG => ".jpeg",
-        FormatType::BMP => ".bmp",
-        FormatType::WEBP => ".WEBP",
-        FormatType::ICO => ".ICO",
-    };
-
+    let output_ext = FormatType::output_ext(file_type);
     let path_handle = match path_save {
         Some(path_save) if !path_save.is_empty() => format!("{}/output{}", path_save, output_ext),
         _ => format!("output{}", output_ext),
@@ -249,7 +284,7 @@ impl Default for MyApp {
         Self {
             input_text: String::new(),
             input_save: String::new(),
-            selected: FormatType::PNG,
+            selected: FormatType::Png,
             error_visible: false,
             block_input: false,
             error: None,
