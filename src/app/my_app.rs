@@ -6,11 +6,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-pub struct ImageSizeValue {
-    value_x: f32,
-    value_y: f32,
-}
-
 pub struct MyApp {
     input_text: String,
     input_save: String,
@@ -86,31 +81,12 @@ impl MyApp {
 
     fn draw_image(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         egui_extras::install_image_loaders(ctx);
-        let image_dimensions = match image::image_dimensions(&self.input_text) {
-            Ok((width, height)) => (width as f32, height as f32),
-            Err(err) => {
-                eprintln!("Error getting image dimensions: {}", err);
-                return;
-            }
-        };
         let source = format!("file://{}", &self.input_text.clone());
-        let mut image_size = ImageSizeValue {
-            value_x: 0.0,
-            value_y: 0.0,
-        };
-
-        if (image_dimensions.0, image_dimensions.1) > (300.0, 250.0){
-            image_size.value_x = image_dimensions.0 * 0.2;
-            image_size.value_y = image_dimensions.1 * 0.2;
-        } else {
-            image_size.value_x = 300.0;
-            image_size.value_y = 250.0
-        }
         ui.add(
             egui::Image::new(source)
             .max_size(egui::Vec2 { 
-                x: image_size.value_x,
-                y: image_size.value_y,
+                x: 190.0,
+                y: 100.0,
             })
             .rounding(10.0)
             .show_loading_spinner(true)
@@ -255,6 +231,8 @@ impl MyApp {
                 ui.style_mut().spacing.item_spacing.y = padding_y;
                 if !self.input_text.is_empty() {
                     self.draw_image(ui, ctx);
+                } else {
+                    ui.add_space(100.0);
                 }
                 self.draw_file_input(ui);
                 self.draw_save_input(ui);

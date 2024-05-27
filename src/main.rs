@@ -19,7 +19,7 @@ fn load_icon(path: &str) -> egui::IconData {
 }
 
 fn main() -> eframe::Result<(), eframe::Error> {
-    let min_size: [f32; 2] = [350.0, 170.0];
+    let min_size: [f32; 2] = [350.0, 270.0];
     // Icon handle
     let mut exe_dir = app::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     exe_dir.push("assets");
