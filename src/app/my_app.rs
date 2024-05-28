@@ -4,6 +4,7 @@ pub use egui::{Color32, TextEdit, Window};
 use std::{
     env,
     sync::{Arc, Mutex},
+    path::PathBuf,
 };
 
 pub struct MyApp {
@@ -38,7 +39,7 @@ impl MyApp {
         ui.label("save in");
         ui.horizontal(|ui| {
             ui.add(TextEdit::singleline(&mut self.input_save));
-            let button_save = ui.button("chose");
+            let button_save = ui.button("choose");
             if button_save.clicked() {
                 if let Ok(nfd::Response::Okay(path)) =
                     nfd::open_dialog(None, None, nfd::DialogType::PickFolder)
@@ -261,9 +262,20 @@ impl MyApp {
 fn convert(path: &str, path_save: Option<&str>, file_type: &FormatType) -> bool {
     let image_data = image::open(path).expect("Failed to open Image");
     let output_ext = FormatType::output_ext(file_type);
+    
     let path_handle = match path_save {
-        Some(path_save) if !path_save.is_empty() => format!("{}/output{}", path_save, output_ext),
-        _ => format!("output{}", output_ext),
+        Some(path_save) if !path_save.is_empty() => {
+            let path_buf = PathBuf::from(path);
+            let file_stem = path_buf.file_stem().expect("Invalid file name").to_str().expect("Failed to convert file name to str");
+            format!("{}/{}{}", path_save, file_stem, output_ext)
+        },
+        _ => {
+        let path_buf = PathBuf::from(path);
+        let file_stem = path_buf.file_stem()
+                .expect("Invalid file name")
+                .to_str()
+                .expect("Failed to convert file name to str");
+        format!("{}{}", file_stem, output_ext)},
     };
 
     image_data
