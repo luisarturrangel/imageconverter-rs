@@ -28,6 +28,26 @@ impl ErrorType {
 }
 
 impl FormatType {
+    pub fn all() -> &'static [FormatType] {
+        use FormatType::*;
+        &[Png, Jpeg, Bmp, WebP, Ico, Gif, Avif, Dds, Hdr, Tiff]
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            FormatType::Png => "PNG",
+            FormatType::Jpeg => "JPEG",
+            FormatType::Bmp => "BMP",
+            FormatType::WebP => "WEBP",
+            FormatType::Gif => "GIF",
+            FormatType::Ico => "ICO",
+            FormatType::Avif => "AVIF",
+            FormatType::Dds => "DDS",
+            FormatType::Hdr => "HDR",
+            FormatType::Tiff => "TIFF",
+        }
+    }
+
     pub fn from_index(index: &FormatType) -> image::ImageFormat {
         match index {
             FormatType::Png => image::ImageFormat::Png,

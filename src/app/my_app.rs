@@ -54,16 +54,9 @@ impl MyApp {
         egui::ComboBox::from_label("Save as")
             .selected_text(format!("{:?}", &self.selected))
             .show_ui(ui, |ui| {
-                ui.selectable_value(&mut self.selected, FormatType::Png, "PNG");
-                ui.selectable_value(&mut self.selected, FormatType::Jpeg, "JPEG");
-                ui.selectable_value(&mut self.selected, FormatType::Bmp, "BMP");
-                ui.selectable_value(&mut self.selected, FormatType::WebP, "WEBP");
-                ui.selectable_value(&mut self.selected, FormatType::Gif, "GIF");
-                ui.selectable_value(&mut self.selected, FormatType::Ico, "ICO");
-                ui.selectable_value(&mut self.selected, FormatType::Avif, "AVIF");
-                ui.selectable_value(&mut self.selected, FormatType::Dds, "DDS");
-                ui.selectable_value(&mut self.selected, FormatType::Hdr, "HDR");
-                ui.selectable_value(&mut self.selected, FormatType::Tiff, "TIFF");
+                for format in FormatType::all() {
+                    ui.selectable_value(&mut self.selected, *format, format.as_str());
+                }
             });
     }
 
@@ -193,7 +186,6 @@ impl MyApp {
     }
 
     fn convert_image(&mut self) {
-        let response_clone = self.response_convert.clone();
         if self.input_text.is_empty() {
             self.error = Some(ErrorType::NoPathProvided);
             self.error_visible = true;
@@ -209,7 +201,7 @@ impl MyApp {
                     let input_text = self.input_text.clone();
                     let input_save = self.input_save.clone();
                     let selected = self.selected.clone();
-                    let response_clone_thread = response_clone.clone();
+                    let response_clone_thread = self.response_convert.clone();
                     std::thread::spawn(move || {
                         let response_convert = convert(&input_text, Some(&input_save), &selected);
 
