@@ -66,7 +66,7 @@ impl MyApp {
         ui.horizontal(|ui| {
             const BUTTON_WIDTH: f32 = 20.0;
             const BUTTON_HEIGHT: f32 = 10.0;
-            ui.add_space(ui.available_width() - &BUTTON_WIDTH * 4.0);
+            ui.add_space(ui.available_width() - BUTTON_WIDTH * 4.0);
             ui.style_mut().spacing.button_padding = (BUTTON_WIDTH, BUTTON_HEIGHT).into();
             response = ui.button("Convert").clicked();
         });
