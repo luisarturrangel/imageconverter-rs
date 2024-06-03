@@ -1,12 +1,21 @@
 [package]
-name = "rust"
+name = "imageconverter-rs"
 version = "0.1.0"
+authors = ["Luis Artur Rangel", "<luisarturrangel@gmail.com>"]
 edition = "2021"
+license = "MIT"
+description = "Efficiently convert images between various formats"
+license-file = "LICENSE.rtf"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-eframe = "*"
-egui = "*"
-image = "*"
-nfd = "*"
+eframe = "0.27.1"
+egui = "0.27.1"
+image = "0.24.9"
+nfd = "0.0.4"
+egui_extras = { version = "*", features = ["all_loaders"] }
+
+[profile.release]
+opt-level = 'z'
+
